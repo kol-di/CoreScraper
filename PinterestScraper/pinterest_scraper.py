@@ -19,10 +19,17 @@ class PageEndError(Exception):
 
 
 def get_image_batch(driver):
-    sleep_timer = 1
+    sleep_timer = 2
+
+    retry = False
+    retry_cnt = 0
+    max_reties = 3
 
     batch_cnt = 0
     while True:
+        if retry:
+            retry_cnt += 1
+
         batch_cnt += 1
         print(f'Batch {batch_cnt}')
         last_height = driver.execute_script("return document.body.scrollHeight")
@@ -31,9 +38,13 @@ def get_image_batch(driver):
         new_height = driver.execute_script("return document.body.scrollHeight")
 
         if last_height == new_height:
-            print('Page end')
-            raise PageEndError
-
+            retry = True
+            if retry_cnt == max_reties:
+                print('Page end')
+                raise PageEndError
+        else:
+            retry_cnt = 0
+            retry = False
         yield
 
 
@@ -88,5 +99,4 @@ def get_image(tag, storage_folder, img_cnt):
         print(f'Collected {cur_img_cnt} images')
 
 
-get_image('breakcore', 'breakcore', 100)
-
+get_image('traumacore', 'traumacore', 500)
